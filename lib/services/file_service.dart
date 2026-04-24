@@ -63,7 +63,7 @@ class FileService {
   /// Delete a file or directory
   Future<void> delete(String path) async {
     try {
-      final entity = FileSystemEntity.typeSync(path) == FileSystemEntityType.directoryectoryectory
+      final entity = FileSystemEntity.typeSync(path) == FileSystemEntityType.directory
           ? Directory(path)
           : File(path);
 
@@ -83,7 +83,7 @@ class FileService {
       final sourceType =
           FileSystemEntity.typeSync(sourcePath);
 
-      if (sourceType == FileSystemEntityType.directoryectoryectory) {
+      if (sourceType == FileSystemEntityType.directory) {
         await _copyDirectory(Directory(sourcePath), Directory(destPath));
       } else {
         final sourceFile = File(sourcePath);
@@ -98,7 +98,7 @@ class FileService {
   Future<void> move(String sourcePath, String destPath) async {
     try {
       final entity = FileSystemEntity.typeSync(sourcePath) ==
-              FileSystemEntityType.directoryectoryectory
+              FileSystemEntityType.directory
           ? Directory(sourcePath)
           : File(sourcePath);
 
@@ -111,7 +111,7 @@ class FileService {
   /// Rename a file or directory
   Future<void> rename(String path, String newName) async {
     try {
-      final entity = FileSystemEntity.typeSync(path) == FileSystemEntityType.directoryectoryectory
+      final entity = FileSystemEntity.typeSync(path) == FileSystemEntityType.directory
           ? Directory(path)
           : File(path);
 
