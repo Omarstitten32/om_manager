@@ -45,7 +45,9 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
                   child: FileManager(
                     child: ControlButtons(
                       onBackPressed: () {
-                        if (!provider.isRootDirectory) provider.goToParentDirectory();
+                        if (!provider.isRootDirectory) {
+                          provider.goToParentDirectory();
+                        }
                       },
                       onHomePressed: () => provider.goToRootDirectory(),
                     ),
@@ -64,7 +66,11 @@ class ControlButtons extends StatelessWidget {
   final VoidCallback onBackPressed;
   final VoidCallback onHomePressed;
 
-  const ControlButtons({super.key, required this.onBackPressed, required this.onHomePressed});
+  const ControlButtons({
+    super.key,
+    required this.onBackPressed,
+    required this.onHomePressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +79,14 @@ class ControlButtons extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       child: Row(
         children: [
-          IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBackPressed),
-          IconButton(icon: const Icon(Icons.home), onPressed: onHomePressed),
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: onBackPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: onHomePressed,
+          ),
           Expanded(
             child: Consumer<FileSystemProvider>(
               builder: (context, provider, _) => Text(
