@@ -43,14 +43,16 @@ class _FileManagerScreenState extends State<FileManagerScreen> {
               children: [
                 Expanded(
                   child: FileManager(
-                    child: ControlButtons(
-                      onBackPressed: () {
-                        if (!provider.isRootDirectory) {
-                          provider.goToParentDirectory();
-                        }
-                      },
-                      onHomePressed: () => provider.goToRootDirectory(),
-                    ),
+                    builder: (context, fileProvider) {
+                      return ControlButtons(
+                        onBackPressed: () {
+                          if (!fileProvider.isRootDirectory) {
+                            fileProvider.goToParentDirectory();
+                          }
+                        },
+                        onHomePressed: () => fileProvider.goToRootDirectory(),
+                      );
+                    },
                   ),
                 ),
               ],
