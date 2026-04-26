@@ -1,6 +1,5 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_manager/file_manager.dart';
-import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class FileManagerScreen extends StatefulWidget {
@@ -11,94 +10,100 @@ class FileManagerScreen extends StatefulWidget {
 }
 
 class _FileManagerScreenState extends State<FileManagerScreen> {
-  late RootProvider _rootProvider;
-  late FileSystemProvider _fileSystemProvider;
+  List<FileSystemEntity> _files = [];
+  String _currentPath = '/storage/emulated/0';
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _rootProvider = RootProvider();
-    _fileSystemProvider = FileSystemProvider(_rootProvider);
-    _requestPermissions();
+    _requestPermissionAndLoad();
   }
 
-  Future<void> _requestPermissions() async {
+  Future<void> _requestPermissionAndLoad() async {
     final status = await Permission.manageExternalStorage.request();
-    if (!status.isGranted && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Storage permission is required')),
-      );
+    if (!status.isGranted) {
+      setState(() {
+        _error = 'Storage permission is required. Please grant it in settings.';
+        _isLoading = false;
+      });
+      return;
     }
+    await _loadFiles();
+  }
+
+  Future<void> _loadFiles() async {
+    setState(() => _isLoading = true);
+    try {
+      final dir = Directory(_currentPath);
+      final List<FileSystemEntity> entities = await dir.list().toList();
+      entities.sort((a, b) {
+        if (a is Directory && b is File) return -1;
+        if (a is File && b is Directory) return 1;
+        return a.path.compareTo(b.path);
+      });
+      setState(() {
+        _files = entities;
+        _error = null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load directory: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _openDirectory(Directory dir) {
+    setState(() {
+      _currentPath = dir.path;
+    });
+    _loadFiles();
+  }
+
+  void _goBack() {
+    if (_currentPath == '/storage/emulated/0') return;
+    final parent = Directory(_currentPath).parent;
+    setState(() {
+      _currentPath = parent.path;
+    });
+    _loadFiles();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('OM Manager')),
-      body: ChangeNotifierProvider<FileSystemProvider>.value(
-        value: _fileSystemProvider,
-        child: Consumer<FileSystemProvider>(
-          builder: (context, provider, _) {
-            return Column(
-              children: [
-                Expanded(
-                  child: FileManager(
-                    builder: (context, fileProvider) {
-                      return ControlButtons(
-                        onBackPressed: () {
-                          if (!fileProvider.isRootDirectory) {
-                            fileProvider.goToParentDirectory();
-                          }
-                        },
-                        onHomePressed: () => fileProvider.goToRootDirectory(),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
+      appBar: AppBar(
+        title: Text(_currentPath),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _goBack,
         ),
       ),
-    );
-  }
-}
-
-class ControlButtons extends StatelessWidget {
-  final VoidCallback onBackPressed;
-  final VoidCallback onHomePressed;
-
-  const ControlButtons({
-    super.key,
-    required this.onBackPressed,
-    required this.onHomePressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).appBarTheme.backgroundColor,
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: onBackPressed,
-          ),
-          IconButton(
-            icon: const Icon(Icons.home),
-            onPressed: onHomePressed,
-          ),
-          Expanded(
-            child: Consumer<FileSystemProvider>(
-              builder: (context, provider, _) => Text(
-                provider.breadCrumbs.join(' / '),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!))
+              : _files.isEmpty
+                  ? const Center(child: Text('This folder is empty'))
+                  : ListView.builder(
+                      itemCount: _files.length,
+                      itemBuilder: (ctx, index) {
+                        final entity = _files[index];
+                        final isDir = entity is Directory;
+                        final name = entity.path.split('/').last;
+                        final icon = isDir ? Icons.folder : Icons.insert_drive_file;
+                        return ListTile(
+                          leading: Icon(icon, color: isDir ? Colors.amber : Colors.blue),
+                          title: Text(name),
+                          onTap: () {
+                            if (isDir) _openDirectory(entity as Directory);
+                          },
+                        );
+                      },
+                    ),
     );
   }
 }
