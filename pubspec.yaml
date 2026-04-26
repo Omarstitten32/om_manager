@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  device_info_plus: ^11.0.0
   flutter:
     sdk: flutter
 
@@ -36,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # File manager dependencies
+  file_manager: ^1.0.1
   path_provider: ^2.1.0
   permission_handler: ^12.0.1
   share_plus: ^7.0.0
@@ -47,6 +49,7 @@ dependencies:
   provider: ^6.0.0
 
 dev_dependencies:
+  device_info_plus: ^11.0.0
   flutter_test:
     sdk: flutter
 
@@ -98,3 +101,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+

@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _requestPermissions() async {
-    final status = await Permission.storage.request();
+    final status = await Permission.manageExternalStorage.request();
 
     if (!mounted) return;
 
@@ -58,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
           'Storage Permission Denied',
           'Storage permission is permanently denied. '
               'Please enable it in app settings.',
+          onPressed: () {
+            openAppSettings();
+          },
         );
       }
     }
@@ -364,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showErrorDialog(String title, String message) {
+  void _showErrorDialog(String title, String message, {VoidCallback? onPressed}) {
     showDialog(
       context: context,
       builder: (context) {
@@ -372,6 +375,14 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(title),
           content: Text(message),
           actions: [
+            if (onPressed != null)
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onPressed();
+                },
+                child: const Text('Open Settings'),
+              ),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('OK'),
